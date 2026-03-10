@@ -370,80 +370,81 @@ export default function AdminConfiguracion() {
                 </div>
               </div>
 
-              {/* Controles de posición de imagen */}
-              {form.hero_imagen_url && (
-                <div className="mt-3 bg-gray-50 rounded-xl p-3">
-                  <label className="block text-xs font-semibold text-gray-600 mb-2">Posición de la imagen</label>
-                  <div className="flex items-center gap-3">
-                    {/* Directional pad */}
-                    <div className="flex flex-col items-center gap-0.5">
-                      <button type="button" onClick={() => setForm(p => {
-                        const [, y] = (p.hero_imagen_posicion || 'center center').split(' ');
-                        return { ...p, hero_imagen_posicion: `center ${y === 'center' ? 'top' : y === 'top' ? 'top' : 'center'}` };
-                      })} className="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-300 flex items-center justify-center text-gray-500 hover:text-blue-600 transition-all shadow-sm" title="Arriba">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
-                      </button>
-                      <div className="flex gap-0.5">
-                        <button type="button" onClick={() => setForm(p => {
-                          const parts = (p.hero_imagen_posicion || 'center center').split(' ');
-                          return { ...p, hero_imagen_posicion: `left ${parts[1] || 'center'}` };
-                        })} className="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-300 flex items-center justify-center text-gray-500 hover:text-blue-600 transition-all shadow-sm" title="Izquierda">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
-                        </button>
-                        <button type="button" onClick={() => setForm(p => ({ ...p, hero_imagen_posicion: 'center center' }))} className="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-300 flex items-center justify-center transition-all shadow-sm" title="Centro">
-                          <div className="w-2 h-2 rounded-full bg-gray-400" />
-                        </button>
-                        <button type="button" onClick={() => setForm(p => {
-                          const parts = (p.hero_imagen_posicion || 'center center').split(' ');
-                          return { ...p, hero_imagen_posicion: `right ${parts[1] || 'center'}` };
-                        })} className="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-300 flex items-center justify-center text-gray-500 hover:text-blue-600 transition-all shadow-sm" title="Derecha">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                        </button>
-                      </div>
-                      <button type="button" onClick={() => setForm(p => {
-                        const [x] = (p.hero_imagen_posicion || 'center center').split(' ');
-                        return { ...p, hero_imagen_posicion: `${x} ${x === 'center' ? 'bottom' : x} bottom`.split(' ').length > 2 ? `center bottom` : `${x} bottom` };
-                      })} className="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-300 flex items-center justify-center text-gray-500 hover:text-blue-600 transition-all shadow-sm" title="Abajo">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+              {/* Controles de posición de imagen — Drag to position */}
+              {form.hero_imagen_url && (() => {
+                const posStr = form.hero_imagen_posicion || '50% 50%';
+                const parts = posStr.split(' ');
+                let xPct = 50, yPct = 50;
+                const parseVal = (v: string) => {
+                  if (v.endsWith('%')) return parseFloat(v);
+                  if (v === 'left') return 0; if (v === 'right') return 100; if (v === 'top') return 0; if (v === 'bottom') return 100;
+                  return 50;
+                };
+                if (parts.length >= 2) { xPct = parseVal(parts[0]); yPct = parseVal(parts[1]); }
+
+                const handleDrag = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+                  const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                  const getPos = (clientX: number, clientY: number) => {
+                    const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+                    const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+                    setForm(p => ({ ...p, hero_imagen_posicion: `${Math.round(x)}% ${Math.round(y)}%` }));
+                  };
+
+                  if ('touches' in e) {
+                    const touch = e.touches[0];
+                    getPos(touch.clientX, touch.clientY);
+                    const onTouchMove = (ev: TouchEvent) => { ev.preventDefault(); getPos(ev.touches[0].clientX, ev.touches[0].clientY); };
+                    const onTouchEnd = () => { document.removeEventListener('touchmove', onTouchMove); document.removeEventListener('touchend', onTouchEnd); };
+                    document.addEventListener('touchmove', onTouchMove, { passive: false });
+                    document.addEventListener('touchend', onTouchEnd);
+                  } else {
+                    getPos(e.clientX, e.clientY);
+                    const onMouseMove = (ev: MouseEvent) => getPos(ev.clientX, ev.clientY);
+                    const onMouseUp = () => { document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); };
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                  }
+                };
+
+                return (
+                  <div className="mt-3 bg-gray-50 rounded-xl p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-semibold text-gray-600">Posición de la imagen</label>
+                      <button type="button" onClick={() => setForm(p => ({ ...p, hero_imagen_posicion: '50% 50%' }))}
+                        className="px-2.5 py-1 bg-[#2980b9] hover:bg-[#2471a3] text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                        Auto centrar
                       </button>
                     </div>
-
-                    {/* Position presets */}
-                    <div className="flex-1">
-                      <div className="grid grid-cols-3 gap-1">
-                        {[
-                          { label: '↖', value: 'left top' },
-                          { label: '↑', value: 'center top' },
-                          { label: '↗', value: 'right top' },
-                          { label: '←', value: 'left center' },
-                          { label: '•', value: 'center center' },
-                          { label: '→', value: 'right center' },
-                          { label: '↙', value: 'left bottom' },
-                          { label: '↓', value: 'center bottom' },
-                          { label: '↘', value: 'right bottom' },
-                        ].map(pos => (
-                          <button key={pos.value} type="button" onClick={() => setForm(p => ({ ...p, hero_imagen_posicion: pos.value }))}
-                            className={`py-1 rounded text-xs font-medium transition-all ${
-                              (form.hero_imagen_posicion || 'center center') === pos.value
-                                ? 'bg-[#2980b9] text-white shadow-sm'
-                                : 'bg-white border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600'
-                            }`}>
-                            {pos.label}
-                          </button>
-                        ))}
+                    <p className="text-[10px] text-gray-400 mb-2">Arrastra sobre la imagen para ajustar el punto focal</p>
+                    <div
+                      className="relative w-full h-40 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 cursor-crosshair select-none"
+                      onMouseDown={handleDrag}
+                      onTouchStart={handleDrag}
+                      style={{ touchAction: 'none' }}
+                    >
+                      <img
+                        src={form.hero_imagen_url}
+                        alt="Vista previa"
+                        className="w-full h-full object-cover pointer-events-none"
+                        style={{ objectPosition: form.hero_imagen_posicion || '50% 50%' }}
+                        draggable={false}
+                      />
+                      {/* Crosshair indicator */}
+                      <div className="absolute pointer-events-none" style={{ left: `${xPct}%`, top: `${yPct}%`, transform: 'translate(-50%, -50%)' }}>
+                        <div className="w-6 h-6 rounded-full border-2 border-white shadow-lg" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.3)' }}>
+                          <div className="w-full h-full rounded-full border border-black/20 flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 rounded-full bg-white" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.4)' }} />
+                          </div>
+                        </div>
                       </div>
+                      {/* Crosshair lines */}
+                      <div className="absolute pointer-events-none top-0 bottom-0" style={{ left: `${xPct}%`, width: '1px', background: 'rgba(255,255,255,0.4)' }} />
+                      <div className="absolute pointer-events-none left-0 right-0" style={{ top: `${yPct}%`, height: '1px', background: 'rgba(255,255,255,0.4)' }} />
                     </div>
-
-                    {/* Auto-adjust button */}
-                    <button type="button" onClick={() => setForm(p => ({ ...p, hero_imagen_posicion: 'center center' }))}
-                      className="px-3 py-2 bg-[#2980b9] hover:bg-[#2471a3] text-white rounded-xl text-xs font-semibold transition-colors flex flex-col items-center gap-1 self-stretch justify-center">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                      <span>Auto</span>
-                    </button>
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-1.5">Posición actual: <span className="font-mono text-gray-500">{form.hero_imagen_posicion || 'center center'}</span></p>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
         )}
