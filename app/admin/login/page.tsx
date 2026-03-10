@@ -13,15 +13,17 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [nombreNegocio, setNombreNegocio] = useState('');
+  const [slogan, setSlogan] = useState('');
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
     const cargarConfig = async () => {
-      const { data } = await supabase.from('configuracion').select('logo_url, nombre_negocio').limit(1).single();
+      const { data } = await supabase.from('configuracion').select('logo_url, nombre_negocio, slogan').limit(1).single();
       if (data) {
         setLogoUrl(data.logo_url);
         setNombreNegocio(data.nombre_negocio || '');
+        setSlogan(data.slogan || '');
       }
     };
     cargarConfig();
@@ -65,14 +67,17 @@ export default function AdminLogin() {
               <img
                 src={logoUrl}
                 alt={nombreNegocio}
-                className="mx-auto mb-3 object-contain"
-                style={{ maxHeight: '64px', maxWidth: '200px' }}
+                className="mx-auto mb-4 object-contain"
+                style={{ maxHeight: '80px', maxWidth: '240px' }}
               />
             ) : (
-              <div className="w-16 h-16 rounded-2xl bg-[#1b2e4b] flex items-center justify-center mx-auto mb-3">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+              <div className="mb-4">
+                <div className="w-14 h-14 rounded-xl bg-gray-200 flex items-center justify-center mx-auto">
+                  <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1.5">Sube tu logo desde Configuración</p>
               </div>
             )}
             <h1
