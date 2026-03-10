@@ -94,7 +94,7 @@ export interface Configuracion {
   hero_titulo: string;
   hero_subtitulo: string;
   hero_imagen_url: string | null;
-  hero_badge: string;
+  hero_imagen_posicion: string;
   hero_boton_texto: string;
   hero_boton_secundario_texto: string;
 

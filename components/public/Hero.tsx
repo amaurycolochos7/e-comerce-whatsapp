@@ -7,10 +7,10 @@ interface Props {
 export default function Hero({ config }: Props) {
   const titulo = config?.hero_titulo || 'Licencias Originales al Mejor Precio';
   const subtitulo = config?.hero_subtitulo || 'Consigue software original, catálogo completo y servicios avanzados.';
-  const badge = config?.hero_badge || '';
   const botonTexto = config?.hero_boton_texto || 'Ver Catálogo';
   const botonSecundario = config?.hero_boton_secundario_texto || 'WhatsApp';
   const heroImagen = config?.hero_imagen_url;
+  const heroImagenPosicion = config?.hero_imagen_posicion || 'center center';
   const whatsapp = config?.whatsapp_contacto || '';
 
   return (
@@ -20,7 +20,7 @@ export default function Hero({ config }: Props) {
           {/* Imagen lado izquierdo */}
           <div className="w-full md:w-1/2 flex justify-center">
             {heroImagen ? (
-              <img src={heroImagen} alt="Productos destacados" className="max-h-72 object-contain drop-shadow-2xl" />
+              <img src={heroImagen} alt="Productos destacados" className="max-h-72 object-cover drop-shadow-2xl w-full rounded-lg" style={{ objectPosition: heroImagenPosicion }} />
             ) : (
               <div className="relative w-72 h-56 flex items-center justify-center">
                 {/* Simulación de cajas de producto */}
@@ -42,9 +42,6 @@ export default function Hero({ config }: Props) {
 
           {/* Texto lado derecho */}
           <div className="w-full md:w-1/2 text-center md:text-left">
-            {badge && (
-              <span className="inline-block bg-white/20 text-white text-xs px-3 py-1 rounded-full mb-3">{badge}</span>
-            )}
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight mb-4">
               {titulo}
             </h1>

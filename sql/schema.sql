@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS configuracion (
   hero_titulo TEXT DEFAULT 'Licencias Originales al Mejor Precio',
   hero_subtitulo TEXT DEFAULT 'Consigue software original, catálogo completo y servicios técnicos avanzados.',
   hero_imagen_url TEXT,
-  hero_badge TEXT DEFAULT 'Catalogo disponible',
+  hero_imagen_posicion TEXT DEFAULT 'center center',
   hero_boton_texto TEXT DEFAULT 'Ver Catálogo',
   hero_boton_secundario_texto TEXT DEFAULT 'WhatsApp',
 
@@ -244,7 +244,7 @@ CREATE POLICY "Admin eliminar imágenes"
 -- Configuración inicial
 INSERT INTO configuracion (
   nombre_negocio, slogan, whatsapp_contacto, telefono, direccion,
-  hero_titulo, hero_subtitulo, hero_badge,
+  hero_titulo, hero_subtitulo,
   hero_boton_texto, hero_boton_secundario_texto,
   color_primario, color_secundario, color_acento, color_fondo, color_texto
 ) VALUES (
@@ -255,7 +255,6 @@ INSERT INTO configuracion (
   'Venustiano Carranza, Chiapas',
   'Licencias Originales al Mejor Precio',
   'Consigue software original, catálogo completo y servicios técnicos avanzados.',
-  'Catalogo disponible',
   'Ver Catálogo',
   'WhatsApp',
   '#0a1628',

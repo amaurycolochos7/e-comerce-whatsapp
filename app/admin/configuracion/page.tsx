@@ -48,12 +48,7 @@ function MobilePreview({ config }: { config: Record<string, string> }) {
       <div className="px-3 py-4 bg-gradient-to-r from-[#1a4a72] to-[#2980b9]">
         {config.hero_imagen_url && (
           <div className="flex justify-center mb-2">
-            <img src={config.hero_imagen_url} alt="" className="w-full rounded-lg object-cover" style={{ maxHeight: '80px' }} />
-          </div>
-        )}
-        {config.hero_badge && (
-          <div className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-white/20 mb-1">
-            <span className="text-white" style={{ fontSize: '6px' }}>{config.hero_badge}</span>
+            <img src={config.hero_imagen_url} alt="" className="w-full rounded-lg object-cover" style={{ maxHeight: '80px', objectPosition: config.hero_imagen_posicion || 'center center' }} />
           </div>
         )}
         <h2 className="font-extrabold text-white leading-tight mb-1" style={{ fontSize: '12px' }}>
@@ -152,7 +147,7 @@ export default function AdminConfiguracion() {
           hero_titulo: data.hero_titulo || '',
           hero_subtitulo: data.hero_subtitulo || '',
           hero_imagen_url: data.hero_imagen_url || '',
-          hero_badge: data.hero_badge || '',
+          hero_imagen_posicion: data.hero_imagen_posicion || 'center center',
           hero_boton_texto: data.hero_boton_texto || '',
           hero_boton_secundario_texto: data.hero_boton_secundario_texto || '',
           color_primario: data.color_primario || '#0a1628',
@@ -215,7 +210,7 @@ export default function AdminConfiguracion() {
       hero_titulo: form.hero_titulo,
       hero_subtitulo: form.hero_subtitulo,
       hero_imagen_url: form.hero_imagen_url || null,
-      hero_badge: form.hero_badge,
+      hero_imagen_posicion: form.hero_imagen_posicion || 'center center',
       hero_boton_texto: form.hero_boton_texto,
       hero_boton_secundario_texto: form.hero_boton_secundario_texto,
       color_primario: form.color_primario,
@@ -350,29 +345,105 @@ export default function AdminConfiguracion() {
               <textarea value={form.hero_subtitulo || ''} onChange={e => setForm(p => ({ ...p, hero_subtitulo: e.target.value }))} rows={2}
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-[#2980b9] transition-all text-sm" />
             </div>
-            <InputField label="Badge (etiqueta)" value={form.hero_badge || ''} onChange={v => setForm(p => ({ ...p, hero_badge: v }))} />
             <div className="grid grid-cols-2 gap-4">
               <InputField label="Boton principal" value={form.hero_boton_texto || ''} onChange={v => setForm(p => ({ ...p, hero_boton_texto: v }))} />
               <InputField label="Boton secundario" value={form.hero_boton_secundario_texto || ''} onChange={v => setForm(p => ({ ...p, hero_boton_secundario_texto: v }))} />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">Imagen del Hero</label>
-              <div className="flex items-center gap-4">
-                {form.hero_imagen_url ? (
-                  <img src={form.hero_imagen_url} alt="Hero" className="w-32 h-20 rounded-xl object-cover border" />
-                ) : (
-                  <div className="w-32 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300">
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  </div>
-                )}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  {form.hero_imagen_url ? (
+                    <img src={form.hero_imagen_url} alt="Hero" className="w-40 h-24 rounded-xl object-cover border" style={{ objectPosition: form.hero_imagen_posicion || 'center center' }} />
+                  ) : (
+                    <div className="w-40 h-24 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300">
+                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                  )}
+                </div>
                 <div className="flex flex-col gap-2">
-                  <label className="cursor-pointer px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 transition-colors">
+                  <label className="cursor-pointer px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 transition-colors text-center">
                     {subiendoHero ? 'Subiendo...' : 'Subir imagen'}
                     <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && subirImagen(e.target.files[0], 'hero')} />
                   </label>
-                  {form.hero_imagen_url && <button onClick={() => setForm(p => ({ ...p, hero_imagen_url: '' }))} className="text-red-400 hover:text-red-600 text-xs text-left">Quitar</button>}
+                  {form.hero_imagen_url && <button onClick={() => setForm(p => ({ ...p, hero_imagen_url: '' }))} className="text-red-400 hover:text-red-600 text-xs">Quitar</button>}
                 </div>
               </div>
+
+              {/* Controles de posición de imagen */}
+              {form.hero_imagen_url && (
+                <div className="mt-3 bg-gray-50 rounded-xl p-3">
+                  <label className="block text-xs font-semibold text-gray-600 mb-2">Posición de la imagen</label>
+                  <div className="flex items-center gap-3">
+                    {/* Directional pad */}
+                    <div className="flex flex-col items-center gap-0.5">
+                      <button type="button" onClick={() => setForm(p => {
+                        const [, y] = (p.hero_imagen_posicion || 'center center').split(' ');
+                        return { ...p, hero_imagen_posicion: `center ${y === 'center' ? 'top' : y === 'top' ? 'top' : 'center'}` };
+                      })} className="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-300 flex items-center justify-center text-gray-500 hover:text-blue-600 transition-all shadow-sm" title="Arriba">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
+                      </button>
+                      <div className="flex gap-0.5">
+                        <button type="button" onClick={() => setForm(p => {
+                          const parts = (p.hero_imagen_posicion || 'center center').split(' ');
+                          return { ...p, hero_imagen_posicion: `left ${parts[1] || 'center'}` };
+                        })} className="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-300 flex items-center justify-center text-gray-500 hover:text-blue-600 transition-all shadow-sm" title="Izquierda">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <button type="button" onClick={() => setForm(p => ({ ...p, hero_imagen_posicion: 'center center' }))} className="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-300 flex items-center justify-center transition-all shadow-sm" title="Centro">
+                          <div className="w-2 h-2 rounded-full bg-gray-400" />
+                        </button>
+                        <button type="button" onClick={() => setForm(p => {
+                          const parts = (p.hero_imagen_posicion || 'center center').split(' ');
+                          return { ...p, hero_imagen_posicion: `right ${parts[1] || 'center'}` };
+                        })} className="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-300 flex items-center justify-center text-gray-500 hover:text-blue-600 transition-all shadow-sm" title="Derecha">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                        </button>
+                      </div>
+                      <button type="button" onClick={() => setForm(p => {
+                        const [x] = (p.hero_imagen_posicion || 'center center').split(' ');
+                        return { ...p, hero_imagen_posicion: `${x} ${x === 'center' ? 'bottom' : x} bottom`.split(' ').length > 2 ? `center bottom` : `${x} bottom` };
+                      })} className="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-blue-50 hover:border-blue-300 flex items-center justify-center text-gray-500 hover:text-blue-600 transition-all shadow-sm" title="Abajo">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                    </div>
+
+                    {/* Position presets */}
+                    <div className="flex-1">
+                      <div className="grid grid-cols-3 gap-1">
+                        {[
+                          { label: '↖', value: 'left top' },
+                          { label: '↑', value: 'center top' },
+                          { label: '↗', value: 'right top' },
+                          { label: '←', value: 'left center' },
+                          { label: '•', value: 'center center' },
+                          { label: '→', value: 'right center' },
+                          { label: '↙', value: 'left bottom' },
+                          { label: '↓', value: 'center bottom' },
+                          { label: '↘', value: 'right bottom' },
+                        ].map(pos => (
+                          <button key={pos.value} type="button" onClick={() => setForm(p => ({ ...p, hero_imagen_posicion: pos.value }))}
+                            className={`py-1 rounded text-xs font-medium transition-all ${
+                              (form.hero_imagen_posicion || 'center center') === pos.value
+                                ? 'bg-[#2980b9] text-white shadow-sm'
+                                : 'bg-white border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600'
+                            }`}>
+                            {pos.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Auto-adjust button */}
+                    <button type="button" onClick={() => setForm(p => ({ ...p, hero_imagen_posicion: 'center center' }))}
+                      className="px-3 py-2 bg-[#2980b9] hover:bg-[#2471a3] text-white rounded-xl text-xs font-semibold transition-colors flex flex-col items-center gap-1 self-stretch justify-center">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                      <span>Auto</span>
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-1.5">Posición actual: <span className="font-mono text-gray-500">{form.hero_imagen_posicion || 'center center'}</span></p>
+                </div>
+              )}
             </div>
           </div>
         )}
