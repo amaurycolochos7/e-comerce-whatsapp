@@ -182,24 +182,27 @@ export default function AdminConfiguracion() {
   const subirImagen = async (file: File, tipo: 'logo' | 'hero') => {
     const setSubiendo = tipo === 'logo' ? setSubiendoLogo : setSubiendoHero;
     setSubiendo(true);
-    const ext = file.name.split('.').pop();
-    const nombre = `${tipo}_${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('configuracion').upload(nombre, file, { upsert: true });
-    if (error) {
-      setMensaje(`Error subiendo imagen: ${error.message}`);
-      setSubiendo(false);
-      return;
+    try {
+      const ext = file.name.split('.').pop();
+      const nombre = `${tipo}_${Date.now()}.${ext}`;
+      console.log(`[subirImagen] Subiendo ${tipo}: ${nombre}`);
+      const { error: uploadError } = await supabase.storage.from('configuracion').upload(nombre, file, { upsert: true });
+      if (uploadError) {
+        console.error('[subirImagen] Error upload:', uploadError);
+        setMensaje(`Error subiendo imagen: ${uploadError.message}`);
+        setSubiendo(false);
+        return;
+      }
+      const { data: publicData } = supabase.storage.from('configuracion').getPublicUrl(nombre);
+      const url = publicData.publicUrl;
+      console.log(`[subirImagen] URL generada: ${url}`);
+      const key = tipo === 'logo' ? 'logo_url' : 'hero_imagen_url';
+      setForm(prev => ({ ...prev, [key]: url }));
+      setMensaje(`Imagen subida. Recuerda dar clic en "Guardar Cambios".`);
+    } catch (err) {
+      console.error('[subirImagen] Error inesperado:', err);
+      setMensaje('Error inesperado al subir imagen');
     }
-    // Intentar URL pública primero, si no funciona usar signed URL
-    const { data: publicData } = supabase.storage.from('configuracion').getPublicUrl(nombre);
-    let url = publicData.publicUrl;
-    // Generar signed URL como respaldo (10 años de expiración)
-    const { data: signedData } = await supabase.storage.from('configuracion').createSignedUrl(nombre, 315360000);
-    if (signedData?.signedUrl) {
-      url = signedData.signedUrl;
-    }
-    const key = tipo === 'logo' ? 'logo_url' : 'hero_imagen_url';
-    setForm(prev => ({ ...prev, [key]: url }));
     setSubiendo(false);
   };
 
@@ -238,18 +241,29 @@ export default function AdminConfiguracion() {
       horario: horario,
     };
 
-    try {
-      if (config?.id) {
-        await supabase.from('configuracion').update(datos).eq('id', config.id);
-      } else {
-        await supabase.from('configuracion').insert(datos);
+    console.log('[guardar] logo_url a guardar:', datos.logo_url);
+    console.log('[guardar] hero_imagen_url a guardar:', datos.hero_imagen_url);
+
+    if (config?.id) {
+      const { error } = await supabase.from('configuracion').update(datos).eq('id', config.id);
+      if (error) {
+        console.error('[guardar] Error en update:', error);
+        setMensaje(`Error al guardar: ${error.message}`);
+        setGuardando(false);
+        return;
       }
-      setMensaje('Cambios guardados correctamente');
-      cargar();
-    } catch {
-      setMensaje('Error al guardar');
+    } else {
+      const { error } = await supabase.from('configuracion').insert(datos);
+      if (error) {
+        console.error('[guardar] Error en insert:', error);
+        setMensaje(`Error al guardar: ${error.message}`);
+        setGuardando(false);
+        return;
+      }
     }
 
+    setMensaje('Cambios guardados correctamente');
+    await cargar();
     setGuardando(false);
     setTimeout(() => setMensaje(''), 4000);
   };
