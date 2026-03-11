@@ -210,7 +210,8 @@ export default function AdminConfiguracion() {
     setGuardando(true);
     setMensaje('');
 
-    const datos = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const datos: Record<string, any> = {
       nombre_negocio: form.nombre_negocio,
       slogan: form.slogan,
       whatsapp_contacto: form.whatsapp_contacto,
@@ -241,25 +242,31 @@ export default function AdminConfiguracion() {
       horario: horario,
     };
 
-    console.log('[guardar] logo_url a guardar:', datos.logo_url);
-    console.log('[guardar] hero_imagen_url a guardar:', datos.hero_imagen_url);
+    const intentarGuardar = async (datosAGuardar: Record<string, any>): Promise<{error: any}> => {
+      if (config?.id) {
+        return await supabase.from('configuracion').update(datosAGuardar).eq('id', config.id);
+      } else {
+        return await supabase.from('configuracion').insert(datosAGuardar);
+      }
+    };
 
-    if (config?.id) {
-      const { error } = await supabase.from('configuracion').update(datos).eq('id', config.id);
-      if (error) {
-        console.error('[guardar] Error en update:', error);
-        setMensaje(`Error al guardar: ${error.message}`);
-        setGuardando(false);
-        return;
-      }
-    } else {
-      const { error } = await supabase.from('configuracion').insert(datos);
-      if (error) {
-        console.error('[guardar] Error en insert:', error);
-        setMensaje(`Error al guardar: ${error.message}`);
-        setGuardando(false);
-        return;
-      }
+    // Primer intento con todos los campos
+    let { error } = await intentarGuardar(datos);
+
+    // Si falla por columna faltante, reintentar sin esa columna
+    if (error && error.message?.includes('schema cache')) {
+      console.warn('[guardar] Columna faltante, reintentando sin hero_imagen_posicion...');
+      const { hero_imagen_posicion, ...datosSinPosicion } = datos;
+      void hero_imagen_posicion; // evitar warning de variable no usada
+      const resultado = await intentarGuardar(datosSinPosicion);
+      error = resultado.error;
+    }
+
+    if (error) {
+      console.error('[guardar] Error:', error);
+      setMensaje(`Error al guardar: ${error.message}`);
+      setGuardando(false);
+      return;
     }
 
     setMensaje('Cambios guardados correctamente');
