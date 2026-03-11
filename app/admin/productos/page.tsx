@@ -44,6 +44,9 @@ export default function AdminProductos() {
     const name = `${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('productos').upload(name, file);
     if (error) return null;
+    // Usar signed URL para que funcione sin importar si el bucket es público
+    const { data: signedData } = await supabase.storage.from('productos').createSignedUrl(name, 315360000);
+    if (signedData?.signedUrl) return signedData.signedUrl;
     const { data } = supabase.storage.from('productos').getPublicUrl(name);
     return data.publicUrl;
   };

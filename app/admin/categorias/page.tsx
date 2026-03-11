@@ -29,6 +29,9 @@ export default function AdminCategorias() {
     const name = `${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('categorias').upload(name, file);
     if (error) return null;
+    // Usar signed URL para que funcione sin importar si el bucket es público
+    const { data: signedData } = await supabase.storage.from('categorias').createSignedUrl(name, 315360000);
+    if (signedData?.signedUrl) return signedData.signedUrl;
     const { data } = supabase.storage.from('categorias').getPublicUrl(name);
     return data.publicUrl;
   };

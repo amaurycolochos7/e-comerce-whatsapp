@@ -190,9 +190,16 @@ export default function AdminConfiguracion() {
       setSubiendo(false);
       return;
     }
-    const { data } = supabase.storage.from('configuracion').getPublicUrl(nombre);
+    // Intentar URL pública primero, si no funciona usar signed URL
+    const { data: publicData } = supabase.storage.from('configuracion').getPublicUrl(nombre);
+    let url = publicData.publicUrl;
+    // Generar signed URL como respaldo (10 años de expiración)
+    const { data: signedData } = await supabase.storage.from('configuracion').createSignedUrl(nombre, 315360000);
+    if (signedData?.signedUrl) {
+      url = signedData.signedUrl;
+    }
     const key = tipo === 'logo' ? 'logo_url' : 'hero_imagen_url';
-    setForm(prev => ({ ...prev, [key]: data.publicUrl }));
+    setForm(prev => ({ ...prev, [key]: url }));
     setSubiendo(false);
   };
 

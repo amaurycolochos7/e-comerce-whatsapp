@@ -32,7 +32,12 @@ export default function AdminServicios() {
       const ext = imagen.name.split('.').pop();
       const name = `${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from('servicios').upload(name, imagen);
-      if (!error) { const { data } = supabase.storage.from('servicios').getPublicUrl(name); imagenUrl = data.publicUrl; }
+      if (!error) {
+        // Usar signed URL para que funcione sin importar si el bucket es público
+        const { data: signedData } = await supabase.storage.from('servicios').createSignedUrl(name, 315360000);
+        if (signedData?.signedUrl) { imagenUrl = signedData.signedUrl; }
+        else { const { data } = supabase.storage.from('servicios').getPublicUrl(name); imagenUrl = data.publicUrl; }
+      }
     }
 
     const datos = { nombre: form.nombre, descripcion: form.descripcion || null, precio: parseFloat(form.precio), categoria_servicio: form.categoria_servicio, activo: form.activo, imagen_url: imagenUrl };
